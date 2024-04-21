@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  flask:
+    build: .
+    container_name: flask_mongo
+    restart: unless-stopped
+    command: bash -c 'flask mariabp init-db && flask sqlitebp init-db && gunicorn --bind 0.0.0.0:80 wsgi:app'
+    ports:
+      - "5000:80"
+    depends_on:
+      - maria_db
+      - mongo_db
+    environment:
+      - MARIABD_USER=root
+      - MARIABD_PASSWD=MYPASSWORD
+      - MARIABD_ADDR=maria_db
+      - MARIABD_PORT=3306
+      - MARIABD_DBNAME=db
+      - MONGODB_USER=root
+      - MONGODB_PASSWD=mypass
+      - MONGODB_ADDR=mongo_db
+      - MONGODB_PORT=27017
+      - MONGODB_DBNAME=mongodb
+  maria_db:
+    image: mariadb:latest
+    ports:
+      - '3306:3306'
+    environment:
+      - MYSQL_ROOT_PASSWORD=MYPASSWORD
+      - MYSQL_DATABASE=db
+      - MARIADB_USER=root
+
+  mongo_db:
+    image: mongo
+    container_name: mongo_db
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: mypass
+      MONGO_INITDB_DBNAME: mongodb
